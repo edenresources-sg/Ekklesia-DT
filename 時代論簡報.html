@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>時代論深度解析</title>
+<style>
+  :root {
+    --navy: #1F3864; --blue: #2E75B6; --gold: #C9A84C;
+    --light: #D6E4F0; --white: #FFFFFF; --grey: #F4F6FA;
+    --dark: #1A1A2E; --text: #2C3E50; --muted: #7F8C8D;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, 'Microsoft JhengHei', sans-serif; background: #111; overflow: hidden; height: 100vh; }
+
+  .deck { width: 100vw; height: 100vh; position: relative; }
+
+  .slide {
+    position: absolute; inset: 0; opacity: 0; pointer-events: none;
+    display: flex; flex-direction: column;
+    transition: opacity 0.45s ease;
+  }
+  .slide.active { opacity: 1; pointer-events: all; }
+
+  /* NAV */
+  .nav {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 14px; z-index: 999;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(8px);
+    padding: 10px 22px; border-radius: 40px;
+  }
+  .nav button {
+    background: none; border: 1.5px solid rgba(255,255,255,0.4);
+    color: #fff; width: 36px; height: 36px; border-radius: 50%;
+    cursor: pointer; font-size: 16px; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .nav button:hover { background: rgba(255,255,255,0.15); }
+  .nav .counter { color: rgba(255,255,255,0.7); font-size: 13px; min-width: 50px; text-align: center; }
+  .progress-dots { display: flex; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.25); transition: all 0.3s; cursor: pointer; }
+  .dot.active { background: var(--gold); transform: scale(1.3); }
+
+  /* ── COMMON LAYOUT ── */
+  .hdr {
+    background: var(--navy); padding: 18px 50px;
+    display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+  }
+  .hdr h2 { color: #fff; font-size: 28px; font-weight: 700; }
+  .hdr .tag { color: var(--gold); font-size: 12px; }
+  .body { flex: 1; overflow: hidden; }
+
+  /* ── SLIDE 1: TITLE ── */
+  #s1 { background: linear-gradient(135deg, #1A1A2E 0%, #1F3864 60%, #2E75B6 100%); }
+  #s1 .inner { padding: 60px 80px; height: 100%; display: flex; flex-direction: column; justify-content: center; }
+  #s1 .eyebrow { color: var(--light); font-size: 14px; letter-spacing: 3px; margin-bottom: 18px; }
+  #s1 h1 { font-size: 68px; color: #fff; font-weight: 900; line-height: 1.1; margin-bottom: 16px; }
+  #s1 h1 span { color: var(--gold); }
+  #s1 .sub { color: var(--light); font-size: 20px; margin-bottom: 40px; }
+  #s1 .chips { display: flex; gap: 12px; flex-wrap: wrap; }
+  #s1 .chip {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.25);
+    color: var(--light); padding: 7px 18px; border-radius: 20px; font-size: 13px;
+  }
+  #s1 .deco {
+    position: absolute; right: 0; top: 0; width: 42%; height: 100%;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 560'%3E%3Ccircle cx='300' cy='150' r='220' fill='%232E75B6' opacity='0.18'/%3E%3Ccircle cx='380' cy='400' r='160' fill='%23C9A84C' opacity='0.1'/%3E%3C/svg%3E") center/cover no-repeat;
+  }
+  #s1 .src { margin-top: auto; color: var(--muted); font-size: 12px; font-style: italic; }
+
+  /* ── SLIDE 2: AGENDA ── */
+  #s2 { background: var(--grey); }
+  #s2 .agenda-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    padding: 24px 50px; height: 100%;
+  }
+  .agenda-card {
+    background: #fff; border-radius: 12px; padding: 18px 20px;
+    display: flex; align-items: flex-start; gap: 16px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+  }
+  .agenda-card .num {
+    width: 40px; height: 40px; border-radius: 50%; background: var(--navy);
+    color: #fff; font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .agenda-card h3 { font-size: 14px; color: var(--navy); font-weight: 700; margin-bottom: 4px; }
+  .agenda-card p { font-size: 11.5px; color: var(--muted); }
+  .agenda-verse {
+    background: var(--navy); border-radius: 12px; padding: 18px 22px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+  }
+  .agenda-verse p { color: var(--light); font-size: 12px; font-style: italic; text-align: center; line-height: 1.7; }
+
+  /* ── SLIDE 3: WHAT IS DISPENSATIONALISM ── */
+  #s3 { background: var(--white); }
+  #s3 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 24px 50px; height: 100%; }
+  .def-card { background: var(--grey); border-radius: 14px; padding: 28px; }
+  .def-card h3 { color: var(--navy); font-size: 16px; font-weight: 700; margin-bottom: 14px; border-bottom: 2px solid var(--light); padding-bottom: 10px; }
+  .def-card .term { color: var(--blue); font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .def-card p { color: var(--text); font-size: 13px; line-height: 1.7; margin-bottom: 12px; }
+  .def-card p strong { color: var(--navy); }
+  .timeline { display: flex; flex-direction: column; gap: 12px; }
+  .tl-item { display: flex; align-items: flex-start; gap: 14px; }
+  .tl-dot {
+    width: 52px; height: 52px; border-radius: 50%; background: var(--navy);
+    color: #fff; font-size: 10px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    flex-shrink: 0; line-height: 1.3;
+  }
+  .tl-item p { color: var(--text); font-size: 12.5px; line-height: 1.6; padding-top: 12px; }
+  .alert-bar {
+    background: var(--gold); color: var(--dark); font-size: 11.5px;
+    font-weight: 700; font-style: italic; padding: 10px 16px; border-radius: 8px;
+    margin-top: 14px;
+  }
+
+  /* ── SLIDE 4: FIVE PILLARS ── */
+  #s4 { background: var(--grey); }
+  #s4 .pillars { display: flex; gap: 12px; padding: 24px 50px; height: 100%; align-items: stretch; }
+  .pillar {
+    flex: 1; background: #fff; border-radius: 14px; padding: 20px 16px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.08); text-align: center;
+  }
+  .pillar .p-num {
+    width: 44px; height: 44px; border-radius: 50%; background: var(--navy);
+    color: #fff; font-size: 15px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pillar h3 { color: var(--navy); font-size: 13.5px; font-weight: 700; line-height: 1.4; }
+  .pillar p { color: var(--muted); font-size: 11px; line-height: 1.6; }
+
+  /* ── SLIDE 5: IMPACTS INTRO ── */
+  #s5 { background: var(--dark); }
+  #s5 .inner { padding: 50px 80px; height: 100%; display: flex; flex-direction: column; justify-content: center; }
+  #s5 .sec-label { color: var(--gold); font-size: 13px; letter-spacing: 2px; margin-bottom: 20px; }
+  #s5 h2 { font-size: 52px; color: #fff; font-weight: 900; line-height: 1.2; margin-bottom: 20px; }
+  #s5 h2 span { color: var(--gold); }
+  #s5 p { color: var(--light); font-size: 16px; line-height: 1.7; max-width: 640px; }
+  #s5 .num-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 80px; height: 80px; border-radius: 50%;
+    border: 3px solid var(--gold); color: var(--gold);
+    font-size: 32px; font-weight: 900; margin-bottom: 20px;
+  }
+
+  /* ── SLIDE 6: SIX IMPACTS ── */
+  #s6 { background: var(--white); }
+  #s6 .impacts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 20px 50px; height: 100%; }
+  .impact-card {
+    background: var(--grey); border-radius: 12px; padding: 18px 20px;
+    display: flex; align-items: flex-start; gap: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .impact-card .i-num {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--navy);
+    color: #fff; font-size: 13px; font-weight: 700; font-style: italic;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .impact-card h3 { font-size: 14px; color: var(--navy); font-weight: 700; margin-bottom: 5px; }
+  .impact-card p { font-size: 11px; color: var(--muted); line-height: 1.6; }
+
+  /* ── SLIDE 7: THIRD TEMPLE ── */
+  #s7 { background: var(--dark); }
+  #s7 .inner { padding: 30px 50px; height: 100%; display: flex; flex-direction: column; gap: 16px; }
+  .temple-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; }
+  .temple-card {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 14px; padding: 22px;
+  }
+  .temple-card h3 { color: var(--gold); font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+  .temple-card ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .temple-card ul li { color: var(--light); font-size: 12px; line-height: 1.6; padding-left: 18px; position: relative; }
+  .temple-card ul li::before { content: "›"; position: absolute; left: 0; color: var(--gold); font-weight: 700; }
+  .temple-quote {
+    background: var(--blue); border-radius: 12px; padding: 16px 22px;
+    color: #fff; font-size: 13px; font-style: italic; text-align: center; line-height: 1.7;
+  }
+
+  /* ── SLIDE 8 & 9: MISUNDERSTANDINGS ── */
+  .mis-slide { background: #12122A; }
+  .mis-list { display: flex; flex-direction: column; gap: 10px; padding: 18px 50px; height: 100%; }
+  .mis-row {
+    background: rgba(46,117,182,0.12); border: 1px solid rgba(46,117,182,0.3);
+    border-radius: 10px; padding: 13px 18px;
+    display: flex; align-items: flex-start; gap: 14px;
+  }
+  .mis-badge {
+    background: var(--gold); color: var(--dark); font-size: 10px; font-weight: 700;
+    padding: 4px 10px; border-radius: 6px; flex-shrink: 0; margin-top: 2px;
+  }
+  .mis-row h4 { color: #fff; font-size: 13.5px; font-weight: 700; margin-bottom: 4px; }
+  .mis-row p { color: var(--light); font-size: 11px; line-height: 1.5; }
+
+  /* ── SLIDE 10: TOUCHSTONE ── */
+  #s10 { background: var(--grey); }
+  #s10 .inner { padding: 28px 50px; height: 100%; display: flex; flex-direction: column; gap: 18px; }
+  .touchstone-q {
+    background: var(--navy); border-radius: 14px; padding: 26px 30px; text-align: center;
+  }
+  .touchstone-q p { color: var(--light); font-size: 13px; margin-bottom: 8px; }
+  .touchstone-q h3 { color: #fff; font-size: 18px; font-weight: 700; line-height: 1.5; }
+  .checks { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; flex: 1; }
+  .check-card {
+    background: #fff; border-radius: 12px; padding: 20px 16px; text-align: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.08); display: flex; flex-direction: column; gap: 10px;
+  }
+  .check-card .icon { font-size: 28px; }
+  .check-card h4 { color: var(--navy); font-size: 13px; font-weight: 700; }
+  .check-card p { color: var(--muted); font-size: 11px; line-height: 1.6; }
+
+  /* ── SLIDE 11: STORY ARC ── */
+  #s11 { background: var(--dark); }
+  #s11 .inner { padding: 30px 50px; height: 100%; display: flex; flex-direction: column; gap: 20px; }
+  #s11 .arc-q {
+    background: var(--gold); border-radius: 12px; padding: 18px 26px; text-align: center;
+  }
+  #s11 .arc-q h3 { color: var(--dark); font-size: 17px; font-weight: 700; }
+  .arc-nodes { display: flex; align-items: center; justify-content: center; gap: 0; flex: 1; }
+  .arc-node {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    flex: 1; position: relative;
+  }
+  .arc-node::after {
+    content: "→"; position: absolute; right: -14px; top: 28px;
+    color: var(--gold); font-size: 20px; font-weight: 700;
+  }
+  .arc-node:last-child::after { display: none; }
+  .arc-circle {
+    width: 90px; height: 90px; border-radius: 50%;
+    background: rgba(46,117,182,0.2); border: 2px solid var(--blue);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 11px; font-weight: 600; text-align: center; padding: 8px;
+  }
+  .arc-label { color: var(--light); font-size: 11px; text-align: center; }
+  .arc-bottom {
+    background: rgba(255,255,255,0.06); border-radius: 10px; padding: 14px 20px; text-align: center;
+  }
+  .arc-bottom p { color: var(--light); font-size: 12.5px; font-style: italic; }
+
+  /* ── SLIDE 12: ASIAN CHURCH ── */
+  #s12 { background: var(--navy); }
+  #s12 .inner { padding: 30px 50px; height: 100%; display: flex; flex-direction: column; gap: 16px; }
+  .asia-intro { color: var(--light); font-size: 14px; line-height: 1.7; }
+  .asia-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; flex: 1; }
+  .asia-card {
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 12px; padding: 20px 16px;
+  }
+  .asia-card .a-icon { font-size: 26px; margin-bottom: 10px; }
+  .asia-card h4 { color: var(--gold); font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .asia-card p { color: var(--light); font-size: 11.5px; line-height: 1.6; }
+
+  /* ── SLIDE 13: CONCLUSION ── */
+  #s13 { background: linear-gradient(135deg, #1A1A2E 0%, #1F3864 60%, #2E75B6 100%); }
+  #s13 .inner { padding: 60px 80px; height: 100%; display: flex; flex-direction: column; justify-content: center; }
+  #s13 h2 { font-size: 44px; color: #fff; font-weight: 900; margin-bottom: 16px; line-height: 1.2; }
+  #s13 h2 span { color: var(--gold); }
+  #s13 .sub { color: var(--light); font-size: 17px; margin-bottom: 36px; line-height: 1.7; max-width: 700px; }
+  .summary-row { display: flex; gap: 12px; }
+  .sum-chip {
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px; padding: 12px 16px; flex: 1;
+  }
+  .sum-chip .n { color: var(--gold); font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+  .sum-chip p { color: #fff; font-size: 11px; line-height: 1.5; }
+  #s13 .verse {
+    margin-top: 28px; color: var(--light); font-size: 14px; font-style: italic;
+    border-left: 3px solid var(--gold); padding-left: 16px;
+  }
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- ── SLIDE 1 ── -->
+<div class="slide active" id="s1">
+  <div class="deco"></div>
+  <div class="inner">
+    <div class="eyebrow">SG247 系列教導 · GAD博士</div>
+    <h1>時代論<br><span>深度解析</span></h1>
+    <div class="sub">認識時代論，守護純正信仰</div>
+    <div class="chips">
+      <span class="chip">🕊 什麼是時代論？</span>
+      <span class="chip">⚠️ 六大負面影響</span>
+      <span class="chip">📖 十大聖經誤解</span>
+      <span class="chip">✓ 試金石原則</span>
+    </div>
+    <div class="src" style="margin-top:32px;">根據 George Annadorai（GAD博士）SG247 系列教導整理</div>
+  </div>
+</div>
+
+<!-- ── SLIDE 2: AGENDA ── -->
+<div class="slide" id="s2">
+  <div class="hdr"><h2>本課大綱</h2><span class="tag">Overview</span></div>
+  <div class="body">
+    <div class="agenda-grid">
+      <div class="agenda-card">
+        <div class="num">01</div>
+        <div><h3>什麼是時代論？</h3><p>起源、歷史與核心教義</p></div>
+      </div>
+      <div class="agenda-card">
+        <div class="num">02</div>
+        <div><h3>五大核心支柱</h3><p>時代論的主要主張</p></div>
+      </div>
+      <div class="agenda-card">
+        <div class="num">03</div>
+        <div><h3>對基督徒的影響</h3><p>六大負面影響分析</p></div>
+      </div>
+      <div class="agenda-card">
+        <div class="num">04</div>
+        <div><h3>對聖經的誤解</h3><p>十大錯誤詮釋</p></div>
+      </div>
+      <div class="agenda-card">
+        <div class="num">05</div>
+        <div><h3>試金石</h3><p>如何評估任何教義</p></div>
+      </div>
+      <div class="agenda-verse">
+        <p>「得勝的，我必將神樂園中<br>生命樹的果子賜給他吃。」<br>—— 啟示錄 2:7</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 3: WHAT IS ── -->
+<div class="slide" id="s3">
+  <div class="hdr"><h2>什麼是時代論？</h2><span class="tag">Section 01</span></div>
+  <div class="body">
+    <div class="two-col">
+      <div class="def-card">
+        <h3>定義</h3>
+        <div class="term">時代論（Dispensationalism）</div>
+        <p>是一套把聖經人為地切割成 <strong>七個時代</strong> 的神學體系。</p>
+        <p>它主張神對以色列和教會有 <strong>兩套不同計劃</strong>，由此衍生出一系列特定的末世論觀點。</p>
+        <div class="alert-bar">⚠ 嚴肅問題：前1,800年的教會為何從未有人「發現」這些真理？</div>
+      </div>
+      <div class="def-card">
+        <h3>歷史起源</h3>
+        <div class="timeline">
+          <div class="tl-item">
+            <div class="tl-dot">1830<br>年代</div>
+            <p>達比（J.N. Darby）創立，歷史不超過 200 年</p>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot">19世紀末</div>
+            <p>《司可福研讀聖經》系統化傳播全球</p>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot">20世紀</div>
+            <p>《末日迷蹤》等小說帶入大眾文化</p>
+          </div>
+          <div class="tl-item">
+            <div class="tl-dot">至今</div>
+            <p>成為美式福音主義主流，輸出全球</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 4: FIVE PILLARS ── -->
+<div class="slide" id="s4">
+  <div class="hdr"><h2>五大核心支柱</h2><span class="tag">Section 02</span></div>
+  <div class="body">
+    <div class="pillars">
+      <div class="pillar">
+        <div class="p-num">01</div>
+        <h3>以色列/教會截然二分</h3>
+        <p>神對兩者有兩套不同計劃，以色列是地上計劃，教會是天上計劃</p>
+      </div>
+      <div class="pillar">
+        <div class="p-num">02</div>
+        <h3>字面解釋舊約土地應許</h3>
+        <p>以色列的土地應許必須在未來字面應驗，因此需要回歸聖地</p>
+      </div>
+      <div class="pillar">
+        <div class="p-num">03</div>
+        <h3>大災難前被提</h3>
+        <p>教會在七年大災難開始前被提升天，以色列單獨面對大災難</p>
+      </div>
+      <div class="pillar">
+        <div class="p-num">04</div>
+        <h3>第三聖殿必重建</h3>
+        <p>以色列必須在耶路撒冷重建聖殿，以完成末日預言時間表</p>
+      </div>
+      <div class="pillar">
+        <div class="p-num">05</div>
+        <h3>七個歷史時代</h3>
+        <p>神按「時代」管理人類，每個時代有不同的救恩計劃與要求</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 5: IMPACTS INTRO ── -->
+<div class="slide" id="s5">
+  <div class="inner">
+    <div class="sec-label">SECTION 03 · 影響分析</div>
+    <div class="num-badge">6</div>
+    <h2>對基督徒的<br><span>六大負面影響</span></h2>
+    <p>時代論不只是一套學術神學理論——它深刻影響了信徒的靈命、使命感、社會參與，以及對聖經的理解方式。</p>
+  </div>
+</div>
+
+<!-- ── SLIDE 6: SIX IMPACTS ── -->
+<div class="slide" id="s6">
+  <div class="hdr"><h2>對基督徒的六大影響</h2><span class="tag">Section 03</span></div>
+  <div class="body">
+    <div class="impacts-grid">
+      <div class="impact-card">
+        <div class="i-num">①</div>
+        <div><h3>以恐懼取代信心</h3><p>持續製造對敵基督、大災難、逼迫的恐懼氛圍，使信徒活在焦慮而非盼望中</p></div>
+      </div>
+      <div class="impact-card">
+        <div class="i-num">②</div>
+        <div><h3>逃避主義</h3><p>「等待被提」的心態，使信徒不積極參與改變世界的使命，缺乏社會責任感</p></div>
+      </div>
+      <div class="impact-card">
+        <div class="i-num">③</div>
+        <div><h3>消極被動</h3><p>「世界是下沉的船」——只救靈魂、不建造文化，放棄在地上帶來神國度影響</p></div>
+      </div>
+      <div class="impact-card">
+        <div class="i-num">④</div>
+        <div><h3>危害亞洲教會</h3><p>讓末世教會在興起之前就已失敗，亞洲教會被這套西方末世框架捆綁了使命</p></div>
+      </div>
+      <div class="impact-card">
+        <div class="i-num">⑤</div>
+        <div><h3>環境破壞</h3><p>「地球是暫時的」的神學——為毫無顧忌地開採破壞自然環境提供神學藉口</p></div>
+      </div>
+      <div class="impact-card">
+        <div class="i-num">⑥</div>
+        <div><h3>削弱辨別力</h3><p>美式神學包裝輸出，信徒盲目信任，喪失對錯誤教義的辨別與批判能力</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 7: THIRD TEMPLE ── -->
+<div class="slide" id="s7">
+  <div class="hdr" style="background:#12122A;"><h2>第三聖殿爭議</h2><span class="tag" style="color:#6C8EBF;">Section 02-B</span></div>
+  <div class="body" style="background:#12122A; padding:20px 50px 0;">
+    <div class="temple-row">
+      <div class="temple-card">
+        <h3>時代論主張</h3>
+        <ul>
+          <li>第三聖殿必須在耶路撒冷重建</li>
+          <li>聖殿重建是「末日時鐘」的關鍵指標</li>
+          <li>支持以色列政治行動奪回聖殿山</li>
+          <li>敵基督將在聖殿中宣稱自己是神</li>
+        </ul>
+      </div>
+      <div class="temple-card">
+        <h3>聖經的回答</h3>
+        <ul>
+          <li>耶穌是最後的聖殿（約2:19-21）</li>
+          <li>希伯來書說不再需要動物祭祀（來10:12）</li>
+          <li>信徒是聖靈居住的殿（林前6:19）</li>
+          <li>重建第三聖殿等於否定基督的成就</li>
+        </ul>
+      </div>
+    </div>
+    <div class="temple-quote" style="margin-top:14px;">
+      「重建第三聖殿的神學，直接挑戰了基督的大祭司職分與一次獻上的完全贖罪。」
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 8: MISUNDERSTANDINGS 1-5 ── -->
+<div class="slide mis-slide" id="s8">
+  <div class="hdr" style="background:#0D0D20;"><h2>對聖經的誤解（一）</h2><span class="tag">Section 04</span></div>
+  <div class="body" style="background:#12122A;">
+    <div class="mis-list">
+      <div class="mis-row">
+        <span class="mis-badge">誤 01</span>
+        <div><h4>以色列≠教會截然二分</h4><p>聖經：神只有一個計劃，在基督裡猶太人與外邦人合而為一（弗 2:14）</p></div>
+      </div>
+      <div class="mis-row">
+        <span class="mis-badge">誤 02</span>
+        <div><h4>教會是「括號」臨時存在</h4><p>聖經：教會是永久的，不是等被提後神才能繼續以色列計劃</p></div>
+      </div>
+      <div class="mis-row">
+        <span class="mis-badge">誤 03</span>
+        <div><h4>大災難前被提</h4><p>聖經：被提在啟示錄16章（非3章）；耶穌呼召教會「忍耐」非「逃脫」</p></div>
+      </div>
+      <div class="mis-row">
+        <span class="mis-badge">誤 04</span>
+        <div><h4>七年大患難</h4><p>聖經：但以理書沒有「插入兩千年空白」的許可，這是人為添加的解釋</p></div>
+      </div>
+      <div class="mis-row">
+        <span class="mis-badge">誤 05</span>
+        <div><h4>第三聖殿必重建</h4><p>聖經：耶穌是最後的聖殿；希伯來書說不再需要祭祀（來 10:12）</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 9: MISUNDERSTANDINGS 6-10 ── -->
+<div class="slide mis-slide" id="s9">
+  <div class="hdr" style="background:#0D0D20;"><h2>對聖經的誤解（二）</h2><span class="tag">Section 04</span></div>
+  <div class="body" style="background:#12122A;">
+    <div class="mis-list">
+      <div class="mis-row">
+        <span class="mis-badge">誤 06</span>
+        <div><h4>地球將被毀滅</h4><p>聖經：故事從地上開始（創世記），在地上結束（啟示錄21-22章）；地球是永恆的</p></div>
+      </div>
+      <div class="mis-row">
+        <span class="mis-badge">誤 07</span>
+        <div><h4>七個教會代表七個歷史時代</h4><p>聖經：這種解讀只有近200年歷史；七個教會是公元一世紀真實存在的群體</p></div>
+      </div>
+      <div class="mis-row">
+        <span class="mis-badge">誤 08</span>
+        <div><h4>敵基督統治全球世界政府</h4><p>聖經：敵基督只與10個國家結盟，非全球193國；「天下各國」是一世紀誇張法</p></div>
+      </div>
+      <div class="mis-row">
+        <span class="mis-badge">誤 09</span>
+        <div><h4>選擇性字面解經</h4><p>聖經：「永遠」在土地問題上是字面的，在其他地方卻不是——前後矛盾</p></div>
+      </div>
+      <div class="mis-row">
+        <span class="mis-badge">誤 10</span>
+        <div><h4>系統神學凌駕聖經故事</h4><p>聖經：正確順序是「故事→體系」；時代論顛倒為「體系→聖經配合框架」</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 10: TOUCHSTONE ── -->
+<div class="slide" id="s10">
+  <div class="hdr"><h2>試金石：如何評估任何教義</h2><span class="tag">Section 05</span></div>
+  <div class="body">
+    <div class="inner" style="padding:20px 50px;">
+      <div class="touchstone-q">
+        <p>核心問題：</p>
+        <h3>「這個教義符合聖經的完整故事嗎？」</h3>
+      </div>
+      <div class="checks" style="margin-top:16px;">
+        <div class="check-card">
+          <div class="icon">📖</div>
+          <h4>聖經整體故事</h4>
+          <p>創造→叛亂→救贖→以色列→耶穌→教會→新創造。任何教義必須符合這個完整弧線。</p>
+        </div>
+        <div class="check-card">
+          <div class="icon">🏛</div>
+          <h4>初代教父的理解</h4>
+          <p>這個詮釋是前1,800年的信徒所持有的嗎？若是很新的「發現」，需要高度謹慎。</p>
+        </div>
+        <div class="check-card">
+          <div class="icon">✓</div>
+          <h4>通過 → 接受<br>不通過 → 拒絕</h4>
+          <p>評估教義不是靠感情或傳統，而是靠聖經完整的故事弧線作為客觀標準。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 11: STORY ARC ── -->
+<div class="slide" id="s11">
+  <div class="hdr" style="background:#12122A;"><h2>試金石：聖經的整體故事</h2><span class="tag">Section 05</span></div>
+  <div class="body" style="background:var(--dark);">
+    <div class="inner">
+      <div class="arc-q"><h3>核心問題：「這個教義符合聖經的完整故事嗎？」</h3></div>
+      <div class="arc-nodes">
+        <div class="arc-node">
+          <div class="arc-circle">創造<br>神國度建立</div>
+          <div class="arc-label">Genesis</div>
+        </div>
+        <div class="arc-node">
+          <div class="arc-circle">叛亂<br>國度敗壞</div>
+          <div class="arc-label">Fall</div>
+        </div>
+        <div class="arc-node">
+          <div class="arc-circle">以色列<br>恢復計劃</div>
+          <div class="arc-label">OT Story</div>
+        </div>
+        <div class="arc-node">
+          <div class="arc-circle">耶穌<br>成就救贖</div>
+          <div class="arc-label">Fulfillment</div>
+        </div>
+        <div class="arc-node">
+          <div class="arc-circle">教會<br>擴展萬國</div>
+          <div class="arc-label">Mission</div>
+        </div>
+        <div class="arc-node">
+          <div class="arc-circle">新創造<br>新天新地</div>
+          <div class="arc-label">Consummation</div>
+        </div>
+      </div>
+      <div class="arc-bottom">
+        <p>聖經是一個故事：一個民族、一位神、一個終結</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 12: ASIAN CHURCH ── -->
+<div class="slide" id="s12">
+  <div class="hdr" style="background:#162848;"><h2>亞洲教會的呼召</h2><span class="tag">Section 06</span></div>
+  <div class="body" style="background:var(--navy);">
+    <div class="inner">
+      <p class="asia-intro">亞洲教會不應讓時代論的末世觀牽制我們的使命——神呼召亞洲教會在末世扮演關鍵角色。</p>
+      <div class="asia-cards">
+        <div class="asia-card">
+          <div class="a-icon">🌏</div>
+          <h4>全球宣教的中心</h4>
+          <p>亞洲（特別是中國、韓國、印度、東南亞）是未來宣教力量的主要來源，不應陷入逃避主義</p>
+        </div>
+        <div class="asia-card">
+          <div class="a-icon">🏗</div>
+          <h4>建造地上文明</h4>
+          <p>神呼召教會不只是「救靈魂」，而是轉化文化、政治、藝術、教育——在地上彰顯神的國</p>
+        </div>
+        <div class="asia-card">
+          <div class="a-icon">📣</div>
+          <h4>抵制錯誤教義</h4>
+          <p>亞洲教會需要認識時代論的問題，發展本土聖經神學，不被美式末世論框架所捆綁</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SLIDE 13: CONCLUSION ── -->
+<div class="slide" id="s13">
+  <div class="inner">
+    <h2>結語：<span>回歸聖經整體故事</span></h2>
+    <div class="sub">時代論不是無害的神學偏差——它深刻影響了信徒的使命感、靈命深度，以及對聖經的理解。認識它，是守護純正信仰的第一步。</div>
+    <div class="summary-row">
+      <div class="sum-chip"><div class="n">01 認識</div><p>時代論的起源與核心主張</p></div>
+      <div class="sum-chip"><div class="n">02 辨別</div><p>其對基督徒造成的六大影響</p></div>
+      <div class="sum-chip"><div class="n">03 糾正</div><p>十大對聖經的錯誤詮釋</p></div>
+      <div class="sum-chip"><div class="n">04 應用</div><p>以整體故事弧作為評估試金石</p></div>
+      <div class="sum-chip"><div class="n">05 行動</div><p>讓亞洲教會活出完整的使命呼召</p></div>
+    </div>
+    <div class="verse">「你們必曉得真理，真理必叫你們得以自由。」—— 約翰福音 8:32</div>
+  </div>
+</div>
+
+</div><!-- /deck -->
+
+<!-- NAV -->
+<div class="nav">
+  <button onclick="go(-1)" title="上一張">‹</button>
+  <div class="progress-dots" id="dots"></div>
+  <span class="counter" id="counter">1 / 13</span>
+  <button onclick="go(1)" title="下一張">›</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let cur = 0;
+
+  const dotsEl = document.getElementById('dots');
+  const counterEl = document.getElementById('counter');
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(n) {
+    slides[cur].classList.remove('active');
+    dotsEl.children[cur].classList.remove('active');
+    cur = Math.max(0, Math.min(total - 1, n));
+    slides[cur].classList.add('active');
+    dotsEl.children[cur].classList.add('active');
+    counterEl.textContent = `${cur + 1} / ${total}`;
+  }
+
+  function go(d) { goTo(cur + d); }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') go(1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') go(-1);
+  });
+</script>
+</body>
+</html>
